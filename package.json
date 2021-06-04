@@ -1,0 +1,27 @@
+{
+  "name": "forkifyapp",
+  "version": "1.0.0",
+  "description": "Recipe App",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel serve index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ColtonFalkner/ForkifyApp.git"
+  },
+  "author": "Colton Falkner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ColtonFalkner/ForkifyApp/issues"
+  },
+  "homepage": "https://github.com/ColtonFalkner/ForkifyApp#readme",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.0.0-nightly.646",
+    "parcel": "^2.0.0-nightly.644"
+  },
+  "dependencies": {
+    "sass": "^1.34.1"
+  }
+}
