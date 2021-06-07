@@ -22,6 +22,8 @@
     "parcel": "^2.0.0-nightly.644"
   },
   "dependencies": {
+    "core-js": "^3.13.1",
+    "regenerator-runtime": "^0.13.7",
     "sass": "^1.34.1"
   }
 }
