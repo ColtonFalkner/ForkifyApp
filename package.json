@@ -1,30 +1,22 @@
 {
-  "name": "forkifyapp",
+  "name": "forkify",
   "version": "1.0.0",
-  "description": "Recipe App",
-  "main": "index.html",
+  "description": "Recipe application",
+  "default": "index.html",
   "scripts": {
-    "start": "parcel serve index.html",
-    "build": "parcel build index.html"
+    "start": "parcel index.html",
+    "build": "parcel build index.html --dist-dir ./dist"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ColtonFalkner/ForkifyApp.git"
-  },
-  "author": "Colton Falkner",
+  "author": "Jonas Schedtmann",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ColtonFalkner/ForkifyApp/issues"
-  },
-  "homepage": "https://github.com/ColtonFalkner/ForkifyApp#readme",
   "devDependencies": {
     "@parcel/transformer-sass": "^2.0.0-nightly.646",
-    "parcel": "^2.0.0-nightly.644"
+    "parcel": "^2.0.0-beta.1",
+    "sass": "^1.26.10"
   },
   "dependencies": {
-    "core-js": "^3.13.1",
+    "core-js": "^3.6.5",
     "fractional": "^1.0.0",
-    "regenerator-runtime": "^0.13.7",
-    "sass": "^1.34.1"
+    "regenerator-runtime": "^0.13.7"
   }
 }
