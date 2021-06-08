@@ -463,7 +463,7 @@ const controlRecipes = async function () {
     // Rendering recipe
     _viewsRecipeViewDefault.default.render(_modelJs.state.recipe);
   } catch (err) {
-    alert(err);
+    console.error(err);
   }
 };
 const init = function () {
@@ -1356,7 +1356,7 @@ class RecipeView {
   _clear() {
     this._parentElement.innerHTML = '';
   }
-  renderSpinner = function () {
+  renderSpinner() {
     const markup = `
     <div class="spinner">
       <svg>
@@ -1364,9 +1364,23 @@ class RecipeView {
       </svg>
     </div>
     `;
-    this._parentElement.innerHTML = '';
+    this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
-  };
+  }
+  renderError(message) {
+    const markup = `
+    <div class="error">
+    <div>
+      <svg>
+        <use href="${_urlImgIconsSvgDefault.default}#icon-alert-triangle"></use>
+      </svg>
+    </div>
+    <p>${message}</p>
+  </div>
+    `;
+    this._clear();
+    this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
   addHandlerRender(handler) {
     ;
     ['hashchange', 'load'].forEach(ev => {
