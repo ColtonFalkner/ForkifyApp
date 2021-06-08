@@ -466,6 +466,15 @@ const controlRecipes = async function () {
     _viewsRecipeViewDefault.default.renderError();
   }
 };
+const controlSearchResults = async function () {
+  try {
+    await _modelJs.loadSearchResults('pizza');
+    console.log(_modelJs.state.search.results);
+  } catch (err) {
+    console.error(err);
+  }
+};
+controlSearchResults();
 const init = function () {
   _viewsRecipeViewDefault.default.addHandlerRender(controlRecipes);
 };
@@ -480,15 +489,22 @@ _parcelHelpers.export(exports, "state", function () {
 _parcelHelpers.export(exports, "loadRecipe", function () {
   return loadRecipe;
 });
+_parcelHelpers.export(exports, "loadSearchResults", function () {
+  return loadSearchResults;
+});
 require('regenerator-runtime');
 var _configJs = require('./config.js');
 var _helpersJs = require('./helpers.js');
 const state = {
-  recipe: {}
+  recipe: {},
+  search: {
+    query: '',
+    results: []
+  }
 };
 const loadRecipe = async function (id) {
   try {
-    const data = await _helpersJs.getJSON(`${_configJs.API_URL}/${id}`);
+    const data = await _helpersJs.getJSON(`${_configJs.API_URL}${id}`);
     const {recipe} = data.data;
     state.recipe = {
       id: recipe.id,
@@ -501,6 +517,24 @@ const loadRecipe = async function (id) {
       ingredients: recipe.ingredients
     };
     console.log(state.recipe);
+  } catch (err) {
+    console.error(`${err} 💥💥💥💥💥`);
+    throw err;
+  }
+};
+const loadSearchResults = async function (query) {
+  try {
+    state.search.query = query;
+    const data = await _helpersJs.getJSON(`${_configJs.API_URL}?search=${query}`);
+    console.log(data);
+    state.search.results = data.data.recipes.map(rec => {
+      return {
+        id: rec.id,
+        title: rec.title,
+        publisher: rec.publisher,
+        image: rec.image_url
+      };
+    });
   } catch (err) {
     console.error(`${err} 💥💥💥💥💥`);
     throw err;
@@ -1266,7 +1300,7 @@ _parcelHelpers.export(exports, "API_URL", function () {
 _parcelHelpers.export(exports, "TIMEOUT_SEC", function () {
   return TIMEOUT_SEC;
 });
-const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes';
+const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes/';
 const TIMEOUT_SEC = 10;
 
 },{"@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"5gA8y":[function(require,module,exports) {
