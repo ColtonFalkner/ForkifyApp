@@ -483,16 +483,23 @@ const controlSearchResults = async function () {
     await _modelJs.loadSearchResults(query);
     // 3. Render results
     // resultsView.render(model.state.search.results)
-    _viewsResultsViewJsDefault.default.render(_modelJs.getSearchResultsPage(4));
+    _viewsResultsViewJsDefault.default.render(_modelJs.getSearchResultsPage(3));
     // 4. render initial pagination
     _viewsPaginationViewJsDefault.default.render(_modelJs.state.search);
   } catch (err) {
     console.error(err);
   }
 };
+const controlPagination = function (goToPage) {
+  // Render NEW results
+  _viewsResultsViewJsDefault.default.render(_modelJs.getSearchResultsPage(goToPage));
+  // Render NEW pagination buttons
+  _viewsPaginationViewJsDefault.default.render(_modelJs.state.search);
+};
 const init = function () {
   _viewsRecipeViewJsDefault.default.addHandlerRender(controlRecipes);
   _viewsSearchViewJsDefault.default.addHandlerSearch(controlSearchResults);
+  _viewsPaginationViewJsDefault.default.addHandlerClick(controlPagination);
 };
 init();
 
@@ -1334,7 +1341,7 @@ _parcelHelpers.export(exports, "RES_PER_PAGE", function () {
 });
 const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes/';
 const TIMEOUT_SEC = 10;
-const RES_PER_PAGE = 10;
+const RES_PER_PAGE = 12;
 
 },{"@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"5gA8y":[function(require,module,exports) {
 "use strict";
@@ -13266,17 +13273,26 @@ var _urlImgIconsSvg = require('url:../../img/icons.svg');
 var _urlImgIconsSvgDefault = _parcelHelpers.interopDefault(_urlImgIconsSvg);
 class paginationView extends _ViewJsDefault.default {
   _parentElement = document.querySelector('.pagination');
+  addHandlerClick(handler) {
+    this._parentElement.addEventListener('click', function (e) {
+      // e.preventDefault()
+      const btn = e.target.closest('.btn--inline');
+      if (!btn) return;
+      const goToPage = +btn.dataset.goto;
+      handler(goToPage);
+    });
+  }
   _generateMarkup() {
     const curPage = this._data.page;
     const _generateMarkupBtnNext = `
-      <button class="btn--inline pagination__btn--next">
+      <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
        <span>Page ${curPage + 1}</span>
         <svg class="search__icon">
         <use href="${_urlImgIconsSvgDefault.default}#icon-arrow-right"></use>
         </svg>
       </button>`;
     const _generateMarkupBtnPrev = `
-    <button class="btn--inline pagination__btn--prev">
+    <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
         <svg class="search__icon">
           <use href="${_urlImgIconsSvgDefault.default}#icon-arrow-left"></use>
         </svg>
@@ -13284,7 +13300,6 @@ class paginationView extends _ViewJsDefault.default {
       </button>
     `;
     const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
-    console.log(numPages);
     // Page 1 and more to go
     if (curPage === 1 && numPages > 1) {
       return _generateMarkupBtnNext;
