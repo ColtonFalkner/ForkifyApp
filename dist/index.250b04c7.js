@@ -452,7 +452,8 @@ var _viewsResultsViewJs = require('./views/resultsView.js');
 var _viewsResultsViewJsDefault = _parcelHelpers.interopDefault(_viewsResultsViewJs);
 var _viewsPaginationViewJs = require('./views/paginationView.js');
 var _viewsPaginationViewJsDefault = _parcelHelpers.interopDefault(_viewsPaginationViewJs);
-require('./views/bookmarksView.js');
+var _viewsBookmarksViewJs = require('./views/bookmarksView.js');
+var _viewsBookmarksViewJsDefault = _parcelHelpers.interopDefault(_viewsBookmarksViewJs);
 require('core-js/stable');
 require('regenerator-runtime/runtime');
 require('regenerator-runtime');
@@ -467,6 +468,7 @@ const controlRecipes = async function () {
     _viewsRecipeViewJsDefault.default.renderSpinner();
     // update results to mark selected results view
     _viewsResultsViewJsDefault.default.update(_modelJs.getSearchResultsPage());
+    _viewsBookmarksViewJsDefault.default.update(_modelJs.state.bookmarks);
     // Loading Recipe
     await _modelJs.loadRecipe(id);
     // Rendering recipe
@@ -506,14 +508,12 @@ const controlServings = function (newServings) {
   _viewsRecipeViewJsDefault.default.update(_modelJs.state.recipe);
 };
 const controlAddBookmark = function () {
-  if (!_modelJs.state.recipe.bookmarked) {
-    _modelJs.addBookmark(_modelJs.state.recipe);
-  } else {
-    _modelJs.state.recipe.bookmarked;
-    _modelJs.deleteBookmark(_modelJs.state.recipe.id);
-  }
-  console.log(_modelJs.state.recipe);
+  // 1) Add/remove bookmark
+  if (!_modelJs.state.recipe.bookmarked) _modelJs.addBookmark(_modelJs.state.recipe); else _modelJs.deleteBookmark(_modelJs.state.recipe.id);
+  // 2) Update recipe view
   _viewsRecipeViewJsDefault.default.update(_modelJs.state.recipe);
+  // 3) Render bookmarks
+  _viewsBookmarksViewJsDefault.default.render(_modelJs.state.bookmarks);
 };
 const init = function () {
   _viewsRecipeViewJsDefault.default.addHandlerRender(controlRecipes);
