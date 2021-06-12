@@ -505,8 +505,14 @@ const controlServings = function (newServings) {
   _viewsRecipeViewJsDefault.default.update(_modelJs.state.recipe);
 };
 const controlAddBookmark = function () {
-  _modelJs.addBookmark(_modelJs.state.recipe);
+  if (!_modelJs.state.recipe.bookmarked) {
+    _modelJs.addBookmark(_modelJs.state.recipe);
+  } else {
+    _modelJs.state.recipe.bookmarked;
+    _modelJs.deleteBookmark(_modelJs.state.recipe.id);
+  }
   console.log(_modelJs.state.recipe);
+  _viewsRecipeViewJsDefault.default.update(_modelJs.state.recipe);
 };
 const init = function () {
   _viewsRecipeViewJsDefault.default.addHandlerRender(controlRecipes);
@@ -538,6 +544,9 @@ _parcelHelpers.export(exports, "updateServings", function () {
 _parcelHelpers.export(exports, "addBookmark", function () {
   return addBookmark;
 });
+_parcelHelpers.export(exports, "deleteBookmark", function () {
+  return deleteBookmark;
+});
 require('regenerator-runtime');
 var _configJs = require('./config.js');
 var _helpersJs = require('./helpers.js');
@@ -565,6 +574,11 @@ const loadRecipe = async function (id) {
       cookingTime: recipe.cooking_time,
       ingredients: recipe.ingredients
     };
+    if (state.bookmarks.some(bookmark => bookmark.id === id)) {
+      state.recipe.bookmarked = true;
+    } else {
+      state.recipe.bookmarked = false;
+    }
     console.log(state.recipe);
   } catch (err) {
     console.error(`${err} 💥💥💥💥💥`);
@@ -609,6 +623,13 @@ const addBookmark = function (recipe) {
   state.bookmarks.push(recipe);
   // mark current rec as marked
   if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+};
+const deleteBookmark = function (id) {
+  // remove bookmark
+  const index = state.bookmarks.findIndex(el => el.id === id);
+  state.bookmarks.splice(index, 1);
+  // unmark current rec as marked
+  if (id === state.recipe.id) state.recipe.bookmarked = false;
 };
 
 },{"regenerator-runtime":"62Qib","./config.js":"6pr2F","./helpers.js":"581KF","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"62Qib":[function(require,module,exports) {
@@ -12732,7 +12753,7 @@ class RecipeView extends _ViewJsDefault.default {
           </div>
           <button class="btn--round btn--bookmark">
             <svg class="">
-              <use href="${_urlImgIconsSvgDefault.default}#icon-bookmark"></use>
+              <use href="${_urlImgIconsSvgDefault.default}#icon-bookmark${this._data.bookmarked ? '-fill' : ''}"></use>
             </svg>
           </button>
         </div>
