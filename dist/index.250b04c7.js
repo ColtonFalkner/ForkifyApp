@@ -462,9 +462,10 @@ require('regenerator-runtime');
 const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1);
-    console.log(id);
     if (!id) return;
     _viewsRecipeViewJsDefault.default.renderSpinner();
+    // update results to mark selected results view
+    _viewsResultsViewJsDefault.default.update(_modelJs.getSearchResultsPage());
     // Loading Recipe
     await _modelJs.loadRecipe(id);
     // Rendering recipe
@@ -483,7 +484,7 @@ const controlSearchResults = async function () {
     await _modelJs.loadSearchResults(query);
     // 3. Render results
     // resultsView.render(model.state.search.results)
-    _viewsResultsViewJsDefault.default.render(_modelJs.getSearchResultsPage(3));
+    _viewsResultsViewJsDefault.default.render(_modelJs.getSearchResultsPage());
     // 4. render initial pagination
     _viewsPaginationViewJsDefault.default.render(_modelJs.state.search);
   } catch (err) {
@@ -496,8 +497,16 @@ const controlPagination = function (goToPage) {
   // Render NEW pagination buttons
   _viewsPaginationViewJsDefault.default.render(_modelJs.state.search);
 };
+const controlServings = function (newServings) {
+  // update the servings in state
+  _modelJs.updateServings(newServings);
+  // update the recipe view (increments of servings)
+  // recipeView.render(model.state.recipe)
+  _viewsRecipeViewJsDefault.default.update(_modelJs.state.recipe);
+};
 const init = function () {
   _viewsRecipeViewJsDefault.default.addHandlerRender(controlRecipes);
+  _viewsRecipeViewJsDefault.default.addHandlerUpdateServings(controlServings);
   _viewsSearchViewJsDefault.default.addHandlerSearch(controlSearchResults);
   _viewsPaginationViewJsDefault.default.addHandlerClick(controlPagination);
 };
@@ -517,6 +526,9 @@ _parcelHelpers.export(exports, "loadSearchResults", function () {
 });
 _parcelHelpers.export(exports, "getSearchResultsPage", function () {
   return getSearchResultsPage;
+});
+_parcelHelpers.export(exports, "updateServings", function () {
+  return updateServings;
 });
 require('regenerator-runtime');
 var _configJs = require('./config.js');
@@ -575,6 +587,12 @@ const getSearchResultsPage = function (page = state.search.page) {
   const end = page * state.search.resultsPerPage;
   // 9
   return state.search.results.slice(start, end);
+};
+const updateServings = function (newServings) {
+  state.recipe.ingredients.forEach(ing => {
+    ing.quantity = ing.quantity * newServings / state.recipe.servings;
+  });
+  state.recipe.servings = newServings;
 };
 
 },{"regenerator-runtime":"62Qib","./config.js":"6pr2F","./helpers.js":"581KF","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"62Qib":[function(require,module,exports) {
@@ -12643,6 +12661,14 @@ class RecipeView extends _ViewJsDefault.default {
       window.addEventListener(ev, handler);
     });
   }
+  addHandlerUpdateServings(handler) {
+    this._parentElement.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn--update-servings');
+      if (!btn) return;
+      const {updateTo} = btn.dataset;
+      if (+updateTo > 0) handler(+updateTo);
+    });
+  }
   _generateMarkup() {
     return `
     <figure class="recipe__fig">
@@ -12666,12 +12692,12 @@ class RecipeView extends _ViewJsDefault.default {
             <span class="recipe__info-data recipe__info-data--people">${this._data.servings}</span>
             <span class="recipe__info-text">servings</span>
             <div class="recipe__info-buttons">
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to= "${this._data.servings - 1}">
                 <svg>
                   <use href="${_urlImgIconsSvgDefault.default}#icon-minus-circle"></use>
                 </svg>
               </button>
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings + 1}">
                 <svg>
                   <use href="${_urlImgIconsSvgDefault.default}#icon-plus-circle"></use>
                 </svg>
@@ -12746,6 +12772,22 @@ class View {
     const markup = this._generateMarkup();
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  update(data) {
+    this._data = data;
+    const newMarkup = this._generateMarkup();
+    const newDOM = document.createRange().createContextualFragment(newMarkup);
+    const newElements = Array.from(newDOM.querySelectorAll('*'));
+    const curElements = Array.from(this._parentElement.querySelectorAll('*'));
+    newElements.forEach((newEl, i) => {
+      const curEl = curElements[i];
+      if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue?.trim?.() !== '') {
+        curEl.textContent = newEl.textContent;
+      }
+      if (!newEl.isEqualNode(curEl)) {
+        Array.from(newEl.attributes).forEach(attr => curEl.setAttribute(attr.name, attr.value));
+      }
+    });
   }
   _clear() {
     this._parentElement.innerHTML = '';
@@ -13246,9 +13288,10 @@ class ResultsView extends _ViewJsDefault.default {
     return this._data.map(this._generateMarkupPreview).join('');
   }
   _generateMarkupPreview(result) {
+    const id = window.location.hash.slice(1);
     return `
       <li class="preview">
-        <a class="preview__link preview__link" href="#${result.id}">
+        <a class="preview__link preview__link ${result.id === id ? 'preview__link--active' : ''}" href="#${result.id}">
           <figure class="preview__fig">
             <img src="${result.image}" alt="Test" />
           </figure>

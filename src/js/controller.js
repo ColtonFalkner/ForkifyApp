@@ -16,11 +16,14 @@ import { async } from 'regenerator-runtime'
 const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1)
-    console.log(id)
 
     if (!id) return
 
     recipeView.renderSpinner()
+
+    //update results to mark selected results view
+    resultsView.update(model.getSearchResultsPage())
+
     //Loading Recipe
     await model.loadRecipe(id)
 
@@ -43,7 +46,7 @@ const controlSearchResults = async function () {
 
     //3. Render results
     // resultsView.render(model.state.search.results)
-    resultsView.render(model.getSearchResultsPage(3))
+    resultsView.render(model.getSearchResultsPage())
 
     //4. render initial pagination
     paginationView.render(model.state.search)
@@ -59,8 +62,17 @@ const controlPagination = function (goToPage) {
   paginationView.render(model.state.search)
 }
 
+const controlServings = function (newServings) {
+  //update the servings in state
+  model.updateServings(newServings)
+  //update the recipe view (increments of servings)
+  // recipeView.render(model.state.recipe)
+  recipeView.update(model.state.recipe)
+}
+
 const init = function () {
   recipeView.addHandlerRender(controlRecipes)
+  recipeView.addHandlerUpdateServings(controlServings)
   searchView.addHandlerSearch(controlSearchResults)
   paginationView.addHandlerClick(controlPagination)
 }
