@@ -7,10 +7,9 @@
     "start": "parcel index.html",
     "build": "parcel build index.html --dist-dir ./dist"
   },
-  "author": "Jonas Schedtmann",
+  "author": "Colton Falkner",
   "license": "ISC",
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.0.0-nightly.646",
     "parcel": "^2.0.0-beta.1",
     "sass": "^1.26.10"
   },
