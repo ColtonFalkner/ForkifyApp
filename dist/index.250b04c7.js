@@ -521,8 +521,14 @@ const controlAddBookmark = function () {
 const controlBookmarks = function () {
   _viewsBookmarksViewJsDefault.default.render(_modelJs.state.bookmarks);
 };
-const controlAddRecipe = function (newRecipe) {
-  console.log(newRecipe);
+const controlAddRecipe = async function (newRecipe) {
+  try {
+    // upload function otw
+    await _modelJs.uploadRecipe(newRecipe);
+  } catch (err) {
+    console.error(err);
+    _viewsAddRecipeViewJsDefault.default.renderError(err.message);
+  }
 };
 const init = function () {
   _viewsBookmarksViewJsDefault.default.addHandlerRender(controlBookmarks);
@@ -558,6 +564,9 @@ _parcelHelpers.export(exports, "addBookmark", function () {
 });
 _parcelHelpers.export(exports, "deleteBookmark", function () {
   return deleteBookmark;
+});
+_parcelHelpers.export(exports, "uploadRecipe", function () {
+  return uploadRecipe;
 });
 require('regenerator-runtime');
 var _configJs = require('./config.js');
@@ -652,7 +661,37 @@ const init = function () {
   if (storage) state.bookmarks = JSON.parse(storage);
 };
 init();
-console.log(state.bookmarks);
+const clearBookmarks = function () {
+  localStorage.clear('bookmarks');
+};
+const uploadRecipe = async function (newRecipe) {
+  try {
+    const ingredients = Object.entries(newRecipe).filter(entry => entry[0].startsWith('ingredient') && entry[1] !== '').map(ing => {
+      const ingArr = ing[1].replaceAll(' ', '').split(',');
+      if (ingArr.length !== 3) throw new Error('Wrong Ingredient Format- Please Use Correct Format');
+      const [quantity, unit, description] = ingArr;
+      return {
+        quantity: quantity ? +quantity : null,
+        unit,
+        description
+      };
+    });
+    console.log(ingredients);
+    const recipe = {
+      title: newRecipe.title,
+      source_url: newRecipe.sourceUrl,
+      image_url: newRecipe.image,
+      publisher: newRecipe.publisher,
+      cooking_time: +newRecipe.cookingTime,
+      servings: +newRecipe.servings,
+      ingredients
+    };
+    const data = await _helpersJs.sendJSON(`${_configJs.API_URL}?key=${_configJs.KEY}`, recipe);
+    console.log(data);
+  } catch (err) {
+    throw err;
+  }
+};
 
 },{"regenerator-runtime":"62Qib","./config.js":"6pr2F","./helpers.js":"581KF","@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"62Qib":[function(require,module,exports) {
 /**
@@ -1416,9 +1455,13 @@ _parcelHelpers.export(exports, "TIMEOUT_SEC", function () {
 _parcelHelpers.export(exports, "RES_PER_PAGE", function () {
   return RES_PER_PAGE;
 });
+_parcelHelpers.export(exports, "KEY", function () {
+  return KEY;
+});
 const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes/';
 const TIMEOUT_SEC = 10;
 const RES_PER_PAGE = 12;
+const KEY = '11529a52-f95d-4a10-b4b3-797f43ef8503';
 
 },{"@parcel/transformer-js/lib/esmodule-helpers.js":"5gA8y"}],"5gA8y":[function(require,module,exports) {
 "use strict";
@@ -1468,6 +1511,9 @@ _parcelHelpers.defineInteropFlag(exports);
 _parcelHelpers.export(exports, "getJSON", function () {
   return getJSON;
 });
+_parcelHelpers.export(exports, "sendJSON", function () {
+  return sendJSON;
+});
 require('regenerator-runtime');
 var _configJs = require('./config.js');
 const timeout = function (s) {
@@ -1480,6 +1526,23 @@ const timeout = function (s) {
 const getJSON = async function (url) {
   try {
     const fetchPro = fetch(url);
+    const res = await Promise.race([fetchPro, timeout(_configJs.TIMEOUT_SEC)]);
+    const data = await res.json();
+    if (!res.ok) throw new Error(`${data.message} (${res.status})`);
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+const sendJSON = async function (url, uploadData) {
+  try {
+    const fetchPro = fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(uploadData)
+    });
     const res = await Promise.race([fetchPro, timeout(_configJs.TIMEOUT_SEC)]);
     const data = await res.json();
     if (!res.ok) throw new Error(`${data.message} (${res.status})`);
@@ -2282,7 +2345,7 @@ class AddRecipeView extends _ViewJsDefault.default {
   }
   addHandlerUpload(handler) {
     this._parentElement.addEventListener('submit', function (e) {
-      e.preventDefault;
+      e.preventDefault();
       const dataArr = [...new FormData(this)];
       const data = Object.fromEntries(dataArr);
       handler(data);
