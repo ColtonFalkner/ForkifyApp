@@ -1,4 +1,5 @@
 import * as model from './model.js'
+import { MODAL_CLOSE_SEC } from './config.js'
 import recipeView from './views/recipeView.js'
 import searchView from './views/searchView.js'
 import resultsView from './views/resultsView.js'
@@ -10,68 +11,64 @@ import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import { async } from 'regenerator-runtime'
 
-// if (module.hot) {
-//   module.hot.accept()
-// }
-
-// const { async } = require('q')
-
 const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1)
 
     if (!id) return
-
     recipeView.renderSpinner()
 
-    //update results to mark selected results view
+    // 0) Update results view to mark selected search result
     resultsView.update(model.getSearchResultsPage())
 
-    //Loading Recipe
+    // 1) Updating bookmarks view
+    bookmarksView.update(model.state.bookmarks)
+
+    // 2) Loading recipe
     await model.loadRecipe(id)
 
-    //Rendering recipe
+    // 3) Rendering recipe
     recipeView.render(model.state.recipe)
-    bookmarksView.update(model.state.bookmarks)
   } catch (err) {
     recipeView.renderError()
-    console.log(err)
-  }
-}
-
-const controlSearchResults = async function () {
-  //1. Get search query
-  try {
-    resultsView.renderSpinner()
-
-    const query = searchView.getQuery()
-    if (!query) return
-    //2. Load search results
-    await model.loadSearchResults(query)
-
-    //3. Render results
-    // resultsView.render(model.state.search.results)
-    resultsView.render(model.getSearchResultsPage())
-
-    //4. render initial pagination
-    paginationView.render(model.state.search)
-  } catch (err) {
     console.error(err)
   }
 }
 
+const controlSearchResults = async function () {
+  try {
+    resultsView.renderSpinner()
+
+    // 1) Get search query
+    const query = searchView.getQuery()
+    if (!query) return
+
+    // 2) Load search results
+    await model.loadSearchResults(query)
+
+    // 3) Render results
+    resultsView.render(model.getSearchResultsPage())
+
+    // 4) Render initial pagination buttons
+    paginationView.render(model.state.search)
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const controlPagination = function (goToPage) {
-  //Render NEW results
+  // 1) Render NEW results
   resultsView.render(model.getSearchResultsPage(goToPage))
-  //Render NEW pagination buttons
+
+  // 2) Render NEW pagination buttons
   paginationView.render(model.state.search)
 }
 
 const controlServings = function (newServings) {
-  //update the servings in state
+  // Update the recipe servings (in state)
   model.updateServings(newServings)
-  //update the recipe view (increments of servings)
-  // recipeView.render(model.state.recipe)
+
+  // Update the recipe view
   recipeView.update(model.state.recipe)
 }
 
@@ -93,10 +90,31 @@ const controlBookmarks = function () {
 
 const controlAddRecipe = async function (newRecipe) {
   try {
-    //upload function otw
+    // Show loading spinner
+    addRecipeView.renderSpinner()
+
+    // Upload the new recipe data
     await model.uploadRecipe(newRecipe)
+    console.log(model.state.recipe)
+
+    // Render recipe
+    recipeView.render(model.state.recipe)
+
+    // Success message
+    addRecipeView.renderMessage()
+
+    // Render bookmark view
+    bookmarksView.render(model.state.bookmarks)
+
+    // Change ID in URL
+    window.history.pushState(null, '', `#${model.state.recipe.id}`)
+
+    // Close form window
+    setTimeout(function () {
+      addRecipeView.toggleWindow()
+    }, MODAL_CLOSE_SEC * 1000)
   } catch (err) {
-    console.error(err)
+    console.error('💥', err)
     addRecipeView.renderError(err.message)
   }
 }
@@ -110,5 +128,4 @@ const init = function () {
   paginationView.addHandlerClick(controlPagination)
   addRecipeView.addHandlerUpload(controlAddRecipe)
 }
-
 init()
