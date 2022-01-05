@@ -582,7 +582,6 @@ _parcelHelpers.export(exports, "uploadRecipe", function () {
 require('regenerator-runtime');
 var _configJs = require('./config.js');
 var _helpersJs = require('./helpers.js');
-var _helpersJsDefault = _parcelHelpers.interopDefault(_helpersJs);
 const state = {
   recipe: {},
   search: {
@@ -611,7 +610,7 @@ const createRecipeObject = function (data) {
 };
 const loadRecipe = async function (id) {
   try {
-    const data = await _helpersJsDefault.default(`${_configJs.API_URL}${id}?key=${_configJs.KEY}`);
+    const data = await _helpersJs.AJAX(`${_configJs.API_URL}${id}?key=${_configJs.KEY}`);
     state.recipe = createRecipeObject(data);
     if (state.bookmarks.some(bookmark => bookmark.id === id)) state.recipe.bookmarked = true; else state.recipe.bookmarked = false;
     console.log(state.recipe);
@@ -624,7 +623,7 @@ const loadRecipe = async function (id) {
 const loadSearchResults = async function (query) {
   try {
     state.search.query = query;
-    const data = await _helpersJsDefault.default(`${_configJs.API_URL}?search=${query}&key=${_configJs.KEY}`);
+    const data = await _helpersJs.AJAX(`${_configJs.API_URL}?search=${query}&key=${_configJs.KEY}`);
     console.log(data);
     state.search.results = data.data.recipes.map(rec => {
       return {
@@ -705,7 +704,7 @@ const uploadRecipe = async function (newRecipe) {
       servings: +newRecipe.servings,
       ingredients
     };
-    const data = await _helpersJsDefault.default(`${_configJs.API_URL}?key=${_configJs.KEY}`, recipe);
+    const data = await _helpersJs.AJAX(`${_configJs.API_URL}?key=${_configJs.KEY}`, recipe);
     state.recipe = createRecipeObject(data);
     addBookmark(state.recipe);
   } catch (err) {
